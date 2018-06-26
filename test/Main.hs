@@ -3,12 +3,12 @@
 module Main where
 
 import GHC.TypeLits (KnownNat, natVal)
-import Numeric.Field.Finite
-import Numeric.Code.Linear
 import Data.Maybe (fromJust)
 import Data.Proxy (Proxy(..))
-import Data.Modular (toMod)
 import Control.Applicative (empty)
+
+import Math.Algebra.Field.Base (eltsFq)
+import Math.Code.Linear
 
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -22,41 +22,46 @@ tests = testGroup "linear-code" [ fieldTests, codeTests ]
 
 fieldTests :: TestTree
 fieldTests = testGroup "Associativity"
-    [ testProperty "Associativity for (GF2,+)" $
-        prop_associativity  ((+) :: GF2 -> GF2 -> GF2)
-    , testProperty "Associativity for (GF2,*)" $
-        prop_associativity  ((*) :: GF2 -> GF2 -> GF2)
+    [ testProperty "Associativity for (F2,+)" $
+        prop_associativity  ((+) :: F2 -> F2 -> F2)
+    , testProperty "Associativity for (F2,*)" $
+        prop_associativity  ((*) :: F2 -> F2 -> F2)
     ]
 
 codeTests :: TestTree
 codeTests =
-    let tc = trivialBinaryCode :: BinaryCode 5 3
-     in testGroup "Trivial code"
-        [ testCase "Trivial binary code == codeFromA zero, [5,3]" $
-            tc @?= codeFromA (const mempty)
-        , testCase "Trivial binary code == codeFromA zero, [3,3]" $
-            (trivialBinaryCode :: BinaryCode 3 3) @?= codeFromA (const mempty)
-        , testCase "Trivial binary code == codeFromA zero, [7,1]" $
-            (trivialBinaryCode :: BinaryCode 7 1) @?= codeFromA (const mempty)
-        , testCase "zero vector is a code word" $
-            assertBool ("H*c' = "++show (check tc mempty)) $
-                isCodeword tc mempty
-        , testCase "ones-vector is not a code word" $
-            let ones = fromJust $ codeword tc [1,1,1,1,1]
-             in assertBool ("H*c' = "++show (check tc ones)) $
-                    isCodeword tc ones
+    let tc = trivialCode :: BinaryCode 5 3
+     in testGroup "Codes"
+        [ testGroup "Trivial code"
+            [ testCase "Trivial binary code == codeFromA zero, [5,3]" $
+                tc @?= codeFromA (const 0)
+            , testCase "Trivial binary code == codeFromA zero, [3,3]" $
+                (trivialCode :: BinaryCode 3 3) @?= codeFromA (const 0)
+            , testCase "Trivial binary code == codeFromA zero, [7,1]" $
+                (trivialCode :: BinaryCode 7 1) @?= codeFromA (const 0)
+            , testCase "zero vector is a code word" $
+                assertBool ("H*c' = "++show (check tc mempty)) $
+                    isCodeword tc mempty
+            , testCase "ones-vector is not a code word" $
+                let ones = fromJust $ cvector tc [1,1,1,1,1]
+                 in assertBool ("H*c' = "++show (check tc ones)) $
+                     not $ isCodeword tc ones
+            ]
+        , testGroup "Hamming(7,4)"
+            [ testProperty "All generated codewords are codewords" $
+                \((x,y,z,w)::(F2,F2,F2,F2)) -> isCodeword hamming74 
+                                (fromJust $ codeword hamming74 [x,y,z,w])
+            ]
+        -- TODO: dualCode . dualCode == id
+        --, testGroup "Code transformers"
+        --    [ testProperty "Dual of dual is identitiy" $
+        --        \(c :: LinearCode 7 4 F2) -> (dualCode . dualCode) c == c
+        --    ]
         ]
 
 -- SmallCheck Series for GF
-instance forall m p s.
-    (Monad m, KnownNat p, KnownNat s) => Serial m (GF p s) where
-        series = GF . toMod <$> series `suchThat` (\x -> 0<=x && x<p'^s')
-            where s' = fromIntegral . natVal $ (Proxy :: Proxy s)
-                  p' = fromIntegral . natVal $ (Proxy :: Proxy p)
-
-
-suchThat :: Series m a -> (a -> Bool) -> Series m a
-suchThat s p = s >>= \x -> if p x then pure x else empty
+instance forall m f. (Monad m, FiniteField f) => Serial m f where
+        series = generate $ \d -> take (d+1) (eltsFq 1 :: [f])
 
 {- QuickCheck Arbitrary
 instance forall p s. (KnownNat p, KnownNat s) => Arbitrary (GF p s) where

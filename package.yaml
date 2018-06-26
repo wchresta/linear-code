@@ -22,18 +22,18 @@ description:         Please see the README on GitHub at <https://github.com/wchr
 dependencies:
     - base >= 4.7 && < 5
     - matrix >= 0.3
-    - modular-arithmetic >= 1.2
+    # - modular-arithmetic >= 1.2
     #- hmatrix >= 0.18
     #- array >= 0.5
-    - reflection >= 2.1
+    # - reflection >= 2.1
+    - HaskellForMaths >= 0.4
     #- comonad
     #- profunctors
 
 library:
   source-dirs: src
   exposed-modules:
-    - Numeric.Field.Finite
-    - Numeric.Code.Linear
+    - Math.Code.Linear
 
 tests:
   linear-code-test:
