@@ -11,29 +11,26 @@ extra-source-files:
 - ChangeLog.md
 
 # Metadata used when publishing your package
-synopsis:            A simple library for linear codes (coding theory, error correction)
-category:            Mathematics
+synopsis: A simple library for linear codes (coding theory, error correction)
+category: Mathematics
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/wchresta/linear-code#readme>
+description: Please see the README on GitHub at <https://github.com/wchresta/linear-code#readme>
 
 dependencies:
     - base >= 4.7 && < 5
     - matrix >= 0.3
-    # - modular-arithmetic >= 1.2
-    #- hmatrix >= 0.18
-    #- array >= 0.5
-    # - reflection >= 2.1
     - HaskellForMaths >= 0.4
-    #- comonad
-    #- profunctors
+    - ghc-typelits-natnormalise >= 0.2
+    - ghc-typelits-knownnat >= 0.4
 
 library:
   source-dirs: src
   exposed-modules:
     - Math.Code.Linear
+    - Data.Matrix.Safe
 
 tests:
   linear-code-test:

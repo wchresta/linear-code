@@ -34,23 +34,23 @@ codeTests =
      in testGroup "Codes"
         [ testGroup "Trivial code"
             [ testCase "Trivial binary code == codeFromA zero, [5,3]" $
-                tc @?= codeFromA (const 0)
+                tc @?= codeFromA zero
             , testCase "Trivial binary code == codeFromA zero, [3,3]" $
-                (trivialCode :: BinaryCode 3 3) @?= codeFromA (const 0)
+                (trivialCode :: BinaryCode 3 3) @?= codeFromA zero
             , testCase "Trivial binary code == codeFromA zero, [7,1]" $
-                (trivialCode :: BinaryCode 7 1) @?= codeFromA (const 0)
+                (trivialCode :: BinaryCode 7 1) @?= codeFromA zero
             , testCase "zero vector is a code word" $
-                assertBool ("H*c' = "++show (check tc mempty)) $
-                    isCodeword tc mempty
+                assertBool ("H*c' = "++show (check tc zero)) $
+                    isCodeword tc zero
             , testCase "ones-vector is not a code word" $
-                let ones = fromJust $ cvector tc [1,1,1,1,1]
+                let ones = fromList [1,1,1,1,1]
                  in assertBool ("H*c' = "++show (check tc ones)) $
                      not $ isCodeword tc ones
             ]
         , testGroup "Hamming(7,4)"
             [ testProperty "All generated codewords are codewords" $
                 \((x,y,z,w)::(F2,F2,F2,F2)) -> isCodeword hamming74 
-                                (fromJust $ codeword hamming74 [x,y,z,w])
+                                (codeword hamming74 (fromList [x,y,z,w]))
             ]
         -- TODO: dualCode . dualCode == id
         --, testGroup "Code transformers"
@@ -63,20 +63,6 @@ codeTests =
 instance forall m f. (Monad m, FiniteField f) => Serial m f where
         series = generate $ \d -> take (d+1) (eltsFq 1 :: [f])
 
-{- QuickCheck Arbitrary
-instance forall p s. (KnownNat p, KnownNat s) => Arbitrary (GF p s) where
-    -- TODO: Generalise to s != 1
-    arbitrary =
-     let p' = fromInteger $ natVal (Proxy :: Proxy p)
-     in do
-        x <- choose (0,p')
-        return . GF . toMod $ x
--}
-
 prop_associativity :: Eq m => (m -> m -> m) -> m -> m -> m -> Bool
 prop_associativity (%) x y z = (x % y) % z == x % (y % z)
-
-
-
-
 
