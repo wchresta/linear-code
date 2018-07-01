@@ -47,12 +47,17 @@ codeTests =
                  in assertBool ("H*c' = "++show (check tc ones)) $
                      not $ isCodeword tc ones
             ]
+        , testGroup "Random Code"
+            [ testProperty "All generated codewords are codewords" $
+                \((c,x,y,z,w)::(BinaryCode 7 4,F2,F2,F2,F2)) 
+                    -> isCodeword c (codeword c (fromList [x,y,z,w]))
+            ]
+
         , testGroup "Hamming(7,4)"
             [ testProperty "All generated codewords are codewords" $
                 \((x,y,z,w)::(F2,F2,F2,F2)) -> isCodeword hamming74 
                                 (codeword hamming74 (fromList [x,y,z,w]))
             ]
-        -- TODO: dualCode . dualCode == id
         --, testGroup "Code transformers"
         --    [ testProperty "Dual of dual is identitiy" $
         --        \(c :: LinearCode 7 4 F2) -> (dualCode . dualCode) c == c
@@ -61,7 +66,18 @@ codeTests =
 
 -- SmallCheck Series for GF
 instance forall m f. (Monad m, FiniteField f) => Serial m f where
-        series = generate $ \d -> take (d+1) (eltsFq 1 :: [f])
+    series = generate $ \d -> take (d+1) (eltsFq 1 :: [f])
+
+-- Smallcheck for LinearCodes
+{- -- TODO: Add Serial for LinearCodes
+instance forall n k f. 
+    (KnownNat n, KnownNat k, FiniteField f) => Serial (LinearCode n k) f where
+        series = generate $ \n -> 
+            let consNKN f = decDepth $ f
+                k = n `div` 2
+                as = consNKN
+             in codeFromA <$> as
+-}
 
 prop_associativity :: Eq m => (m -> m -> m) -> m -> m -> m -> Bool
 prop_associativity (%) x y z = (x % y) % z == x % (y % z)

@@ -1,5 +1,5 @@
 {-# LANGUAGE DataKinds, KindSignatures, ScopedTypeVariables
-  , GeneralizedNewtypeDeriving, TypeOperators #-}
+  , GeneralizedNewtypeDeriving, TypeOperators, TypeFamilies #-}
 {-|
 Module      : Data.Matrix.Safe
 Description : Type safe matrix wrapper over the matrix library
@@ -28,9 +28,10 @@ module Data.Matrix.Safe
     , fromList
     , fromLists
     , (.*)
+    , rref
     ) where
 
-import GHC.TypeLits (Nat, KnownNat, natVal, type (+), type (-))
+import GHC.TypeLits (Nat, KnownNat, natVal, type (+), type (-), type (<=))
 import GHC.Generics (Generic)
 import Data.Proxy (Proxy(..))
 import Data.Semigroup (Semigroup, (<>))
@@ -38,10 +39,13 @@ import Data.Monoid (mappend)
 
 import qualified Data.Matrix as M
 
-newtype Matrix (m :: Nat) (n :: Nat) (a :: *) = Matrix (M.Matrix a)
-    deriving (Functor, Applicative, Foldable, Eq, Show, Monoid)
+newtype Matrix (m :: Nat) (n :: Nat) (f :: *) = Matrix (M.Matrix f)
+    deriving (Functor, Applicative, Foldable, Eq, Monoid)
 
-instance forall mat m n. Num mat => Num (Matrix m n mat) where
+instance forall m n f. Show f => Show (Matrix m n f) where
+    show (Matrix mat) = M.prettyMatrix mat
+
+instance forall f m n. Num f => Num (Matrix m n f) where
     (Matrix x) + (Matrix y) = Matrix $ x + y
     (Matrix x) - (Matrix y) = Matrix $ x - y
     (*) = error "Data.Matrix.Safe: (*) not allowed. Use (.*) instead"
@@ -98,4 +102,13 @@ fromLists as = if length as == m' && length (head as) == n'
                                 <>show m' <>":"<> show n'
     where n' = fromInteger $ natVal (Proxy :: Proxy n)
           m' = fromInteger $ natVal (Proxy :: Proxy m)
+
+
+-- TODO: The RREF algorithm doesn't seem to work for finite fields
+-- as it runs into division by 0 errors (Fp.recip on 0). We probably
+-- need to rewrite this alorithm on our own.
+rref :: forall m n a. (Fractional a, Eq a, KnownNat m, KnownNat n, m <= n) 
+     => Matrix m n a -> Either String (Matrix m n a)
+rref (Matrix m) = Matrix <$> M.rref m
+
 

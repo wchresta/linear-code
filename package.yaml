@@ -25,6 +25,9 @@ dependencies:
     - HaskellForMaths >= 0.4
     - ghc-typelits-natnormalise >= 0.2
     - ghc-typelits-knownnat >= 0.4
+    - random
+    - MonadRandom
+      #    - hmatrix
 
 library:
   source-dirs: src

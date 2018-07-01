@@ -45,8 +45,10 @@ extra-deps:
 # nix dependencies
 nix:
   packages:  
-  #  - blas
+  # PACKAGES for hmatrix
+  #   - blas
   #  - liblapack  # needed by hmatrix
+  #  - gfortran.cc.lib # https://github.com/NixOS/nixpkgs/issues/30867
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
