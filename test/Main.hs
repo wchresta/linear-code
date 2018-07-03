@@ -31,6 +31,7 @@ fieldTests = testGroup "Associativity"
 codeTests :: TestTree
 codeTests =
     let tc = trivialCode :: BinaryCode 5 3
+        hamming74 = hamming :: BinaryCode 7 4
      in testGroup "Codes"
         [ testGroup "Trivial code"
             [ testCase "Trivial binary code == codeFromA zero, [5,3]" $
@@ -47,15 +48,16 @@ codeTests =
                  in assertBool ("H*c' = "++show (check tc ones)) $
                      not $ isCodeword tc ones
             ]
+        {- -- TODO: Write this test
         , testGroup "Random Code"
             [ testProperty "All generated codewords are codewords" $
                 \((c,x,y,z,w)::(BinaryCode 7 4,F2,F2,F2,F2)) 
                     -> isCodeword c (codeword c (fromList [x,y,z,w]))
             ]
-
+        -}
         , testGroup "Hamming(7,4)"
             [ testProperty "All generated codewords are codewords" $
-                \((x,y,z,w)::(F2,F2,F2,F2)) -> isCodeword hamming74 
+                \((x,y,z,w)::(F2,F2,F2,F2)) -> isCodeword hamming74
                                 (codeword hamming74 (fromList [x,y,z,w]))
             ]
         --, testGroup "Code transformers"
