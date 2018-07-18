@@ -1,5 +1,10 @@
-{-# LANGUAGE DataKinds, KindSignatures, ScopedTypeVariables
-  , GeneralizedNewtypeDeriving, TypeOperators, TypeFamilies #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-|
 Module      : Data.Matrix.Safe
 Description : Type safe matrix wrapper over the matrix library
@@ -104,9 +109,6 @@ fromLists as = if length as == m' && length (head as) == n'
           m' = fromInteger $ natVal (Proxy :: Proxy m)
 
 
--- TODO: The RREF algorithm doesn't seem to work for finite fields
--- as it runs into division by 0 errors (Fp.recip on 0). We probably
--- need to rewrite this alorithm on our own.
 rref :: forall m n a. (Fractional a, Eq a, KnownNat m, KnownNat n, m <= n) 
      => Matrix m n a -> Either String (Matrix m n a)
 rref (Matrix m) = Matrix <$> M.rref m

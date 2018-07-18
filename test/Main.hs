@@ -41,11 +41,11 @@ codeTests =
             , testCase "Trivial binary code == codeFromA zero, [7,1]" $
                 (trivialCode :: BinaryCode 7 1) @?= codeFromA zero
             , testCase "zero vector is a code word" $
-                assertBool ("H*c' = "++show (check tc zero)) $
+                assertBool ("H*c' = "++show (syndrome tc zero)) $
                     isCodeword tc zero
             , testCase "ones-vector is not a code word" $
                 let ones = fromList [1,1,1,1,1]
-                 in assertBool ("H*c' = "++show (check tc ones)) $
+                 in assertBool ("H*c' = "++show (syndrome tc ones)) $
                      not $ isCodeword tc ones
             ]
         {- -- TODO: Write this test
@@ -56,9 +56,9 @@ codeTests =
             ]
         -}
         , testGroup "Hamming(7,4)"
-            [ testProperty "All generated codewords are codewords" $
+            [ testProperty "All encoded words are codewords" $
                 \((x,y,z,w)::(F2,F2,F2,F2)) -> isCodeword hamming74
-                                (codeword hamming74 (fromList [x,y,z,w]))
+                                (encode hamming74 (fromList [x,y,z,w]))
             ]
         --, testGroup "Code transformers"
         --    [ testProperty "Dual of dual is identitiy" $

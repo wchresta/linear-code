@@ -27,12 +27,14 @@ dependencies:
     - ghc-typelits-knownnat >= 0.4
     - random
     - MonadRandom
-      #    - hmatrix
+      #   - hmatrix
+      #   - polynomial
 
 library:
   source-dirs: src
   exposed-modules:
     - Math.Code.Linear
+    - Math.Algebra.Field.Random
     - Data.Matrix.Safe
 
 tests:
