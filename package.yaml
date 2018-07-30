@@ -21,6 +21,9 @@ description: Please see the README on GitHub at <https://github.com/wchresta/lin
 
 dependencies:
     - base >= 4.7 && < 5
+    - combinat >= 0.2
+    - containers >= 0.5
+    - data-default >= 0.5
     - matrix >= 0.3
     - HaskellForMaths >= 0.4
     - ghc-typelits-natnormalise >= 0.2
@@ -34,7 +37,8 @@ library:
   source-dirs: src
   exposed-modules:
     - Math.Code.Linear
-    - Math.Algebra.Field.Random
+    - Math.Algebra.Field.Instances
+    - Math.Algebra.Field.Static
     - Data.Matrix.Safe
 
 tests:
@@ -49,7 +53,9 @@ tests:
     - linear-code
     - tasty
     - tasty-smallcheck
+    - tasty-quickcheck
     - tasty-hunit
+    - QuickCheck
     - smallcheck
 
 github: wchresta/linear-code

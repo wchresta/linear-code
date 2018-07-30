@@ -1,10 +1,13 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
 module Math.Algebra.Field.Static where
 
-import GHC.TypeLits (Nat, type (^))
+import Data.Proxy (Proxy(Proxy))
+import GHC.TypeLits (Nat, KnownNat, type (^), natVal)
 import qualified Math.Algebra.Field.Base as F
 import qualified Math.Algebra.Field.Extension as F
 
@@ -37,6 +40,9 @@ type instance Characteristic F.F89 = 89
 type instance Characteristic F.F97 = 97
 type instance Characteristic (F.ExtensionField k poly) 
   = Characteristic k -- Extension fields have their base fields char
+
+char :: forall c f. (KnownNat c, c ~ Characteristic f) => Proxy f -> Int
+char Proxy = fromInteger . natVal $ Proxy @c
 
 type family PolyDegree (f :: *) :: Nat
 type instance PolyDegree F.ConwayF4 = 2
