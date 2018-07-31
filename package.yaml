@@ -1,14 +1,13 @@
 name:                linear-code
 version:             0.1.0.0
 github:              "wchresta/linear-code"
-license:             BSD3
+license:             GPL3
 author:              "Wanja Chresta"
 maintainer:          "wanja.hs@chrummibei.ch"
 copyright:           "2018, Wanja Chresta"
 
 extra-source-files:
 - README.md
-- ChangeLog.md
 
 # Metadata used when publishing your package
 synopsis: A simple library for linear codes (coding theory, error correction)

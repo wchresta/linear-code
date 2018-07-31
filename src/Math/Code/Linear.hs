@@ -7,6 +7,22 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.KnownNat.Solver #-}
+{-
+    This file is part of linear-codes.
+
+    Linear-Codes is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Foobar is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+-}
 {-|
 Module      : Math.Code.Linear
 Description : Linear codes over arbitrary fields
@@ -53,12 +69,14 @@ module Math.Code.Linear
     , rank
 
     , e, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10
+    , char
 
     -- * Reexported matrix functions
     , matrix, zero, transpose, fromList, fromLists
 
     -- * Reexported finite fields
-    , FiniteField, ExtensionField, F2, char
+    , FiniteField, F2, F3, F5, F7, F11
+    , ExtensionField, F4, F8, F16, F9
     ) where
 
 -- Linear codes from mathematical coding theory, including error correcting
@@ -88,12 +106,14 @@ import Data.Matrix.Safe
 import Math.Core.Utils (FinSet, elts)
 import Math.Common.IntegerAsType (IntegerAsType, value)
 import Math.Algebra.Field.Base
-        (FiniteField, eltsFq, basisFq, Fp(Fp)
-        , F2, F3, F5, F7, F11, F13, F17, F19, F23, F29, F31, F37, F41, F43
-        , F47, F53, F59, F61, F67, F71, F73, F79, F83, F89, F97
+        ( FiniteField, eltsFq, basisFq, Fp(Fp)
+        , F2, F3, F5, F7, F11
         )
 import Math.Algebra.Field.Static (Size, Characteristic, PolyDegree, char)
-import Math.Algebra.Field.Extension (ExtensionField(Ext), x, embed, pvalue)
+import Math.Algebra.Field.Extension
+        ( ExtensionField(Ext), x, embed, pvalue
+        , F4, F8, F16, F9
+        )
 import Math.Algebra.Field.Instances -- import Random instances for Fields
 
 
@@ -167,7 +187,10 @@ randomStandardFormCode :: forall n k f g.
     ( KnownNat n, KnownNat k, k <= n
     , Eq f, FinSet f, Num f, Ord f, Random f, RandomGen g)
       => g -> (LinearCode n k f, g)
-randomStandardFormCode = first codeFromA . random
+randomStandardFormCode = first codeFromA . randomAMatrix
+  where
+    randomAMatrix :: RandomGen g => g -> (Matrix k (n-k) f,g)
+    randomAMatrix = random
 
 
 instance forall n k f.
@@ -214,12 +237,6 @@ rank _ = natToInt @k Proxy
 weight :: forall n f m. (Eq f, Num f, Functor m, Foldable m) => m f -> Int
 weight = sum . fmap (\x -> if x==0 then 0 else 1)
 
--- | A standard form generator (I|A) from the k x (n-k)-matrix A
-standardFormGeneratorFromA :: forall k n f.
-    (Num f, KnownNat n, KnownNat k, k <= n)
-      => Matrix k (n-k) f -> Generator n k f
-standardFormGeneratorFromA a = identity <|> a
-
 -- | Generate a linear [n,k]_q-Code over the field a with the generator in
 --   standard form (I|A), where the given function generates the k×(n-k)-matrix
 --   A.
@@ -229,8 +246,8 @@ codeFromA :: forall k n f.
             -- ^ Elements of A where top-left is (1,1) and bottom right (k,n-k)
       -> LinearCode n k f
 codeFromA a = recalcSyndromeTable LinearCode
-    { generatorMatrix = standardFormGeneratorFromA a
-    , checkMatrix = -transpose a <|> identity
+    { generatorMatrix = identity <|> a
+    , checkMatrix = (-transpose a) <|> identity -- () are important for f/=F2
     , distance = Nothing
     , syndromeTable = undefined
     }
@@ -297,7 +314,7 @@ syndromeDecode :: forall n k f.
 syndromeDecode c w =
     let syn = syndrome c w
         e = M.lookup syn $ syndromeTable c
-     in (w-) <$> e
+     in (w+) <$> e
 
 -- | Synonym for syndromeDecoding, an inefficient decoding algorithm that works
 --   for all linear codes.
@@ -412,10 +429,10 @@ simplex = codeFromA . transpose $ fromLists nonUnit
     allVectors = fmap reverse . tail $ iterate ([(0:),(1:)] <*>) [[]] !! k
     nonUnit = filter ((>1) . weight) allVectors
 
--- | The /Hamming(7,4)/-code.
+-- | The /Hamming(7,4)/-code. It is a [7,4,3]_2 code
 hamming :: (KnownNat m, 2 <= m, m <= 2^m, 1+m <= 2^m)
         => LinearCode (2^m-1) (2^m-m-1) F2
-hamming = dualCode simplex
+hamming = dualCode simplex { distance = Just 3 }
 
 
 -- * Helper functions

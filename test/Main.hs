@@ -60,24 +60,24 @@ codeTests =
             [ Q.testProperty "Random code generation works" $
                 \(c :: LinearCode 7 4 F.F3) -> seq c True
             , Q.testProperty "All generated codewords are codewords" $
-                \c x y z w -> isCodeword (c :: BinaryCode 7 4) $
-                    encode c $ fromList ([x,y,z,w] :: [F2])
+                \c x y z w -> isCodeword (c :: LinearCode 7 4 F.F5) $
+                    encode c $ fromList ([x,y,z,w] :: [F.F5])
             ]
         , testGroup "Hamming(7,4)"
             [ S.testProperty "All encoded words are codewords" $
                 \((x,y,z,w)::(F2,F2,F2,F2)) -> isCodeword hamming74
                                 (encode hamming74 (fromList [x,y,z,w]))
             , Q.testProperty "List all codewords" $
-                \(c :: LinearCode 7 4 F.F5) -> 
+                \(c :: LinearCode 7 4 F.F5) ->
                     length (codewords c) == 5^4
             , Q.testProperty "Simple decode of single error" $
-                \(v :: Vector 4 F2) -> 
+                \(v :: Vector 4 F2) ->
                     let c = encode hamming74 v :: Vector 7 F2
                      in decode hamming74 (c + e2) == Just c
             ]
         , testGroup "Standard form"
             [ Q.testProperty "Standard form of standard form is equal" $
-                \(c :: LinearCode 7 4 F.F3) -> 
+                \(c :: LinearCode 7 4 F.F3) ->
                     let Just sc = standardFormGenerator c
                      in Just sc == standardForm sc
             ]
@@ -91,7 +91,7 @@ codeTests =
 instance forall m f. (Monad m, FiniteField f) => S.Serial m f where
     series = S.generate $ \d -> take (d+1) (F.eltsFq 1 :: [f])
 
-instance forall m n f. (KnownNat m, KnownNat n, Q.Arbitrary f) 
+instance forall m n f. (KnownNat m, KnownNat n, Q.Arbitrary f)
   => Q.Arbitrary (M.Matrix m n f) where
     arbitrary = fromList <$> Q.vectorOf (n*m) Q.arbitrary
       where

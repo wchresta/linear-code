@@ -7,6 +7,22 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
+{-
+    This file is part of linear-codes.
+
+    Linear-Codes is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Foobar is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
+-}
 {-|
 Module      : Data.Matrix.Safe
 Description : Type safe matrix wrapper over the matrix library
@@ -37,6 +53,7 @@ module Data.Matrix.Safe
     , toList
     , toLists
     , (.*)
+    , (^*)
     , rref
     , submatrix
     ) where
@@ -94,6 +111,10 @@ instance forall m n a. (KnownNat m, KnownNat n, R.Random a)
 -- | Type safe matrix multiplication
 (.*) :: forall m k n a. Num a => Matrix m k a -> Matrix k n a -> Matrix m n a
 (Matrix m) .* (Matrix n) = Matrix $ m * n
+
+-- | Type safe scalar multiplication
+(^*) :: forall m n a. Num a => a -> Matrix m n a -> Matrix m n a
+x ^* (Matrix n) = Matrix $ M.scaleMatrix x n
 
 type Vector = Matrix 1
 
