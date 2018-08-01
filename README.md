@@ -19,8 +19,8 @@ This library is based roughly on [/Introduction to Coding Theory/ by /Yehuda Lin
 ( 0 2 0 0 1 2 0 )
 ( 0 1 0 1 0 1 0 )
 ( 1 0 0 0 0 1 1 )
-> e1 :: Vector 7 F5
-( 1 0 0 0 0 0 0 )
+> e1 :: Vector 4 F5
+( 1 0 0 0 )
 > v = encode c e1
 > v
 ( 1 0 1 0 0 2 0 )
@@ -36,10 +36,9 @@ False
 > decode c vWithError
 Just ( 1 0 2 2 2 2 0 )
 ```
-Notice, the returned vector is NOT the one without error. The reason
-for this is that a random code most likely does not likely have
-a distance >2 which would be needed to correct one error.
-Let's try with a hamming code
+Notice, the returned vector is NOT the one without error. The reason for this
+is that a random code most likely does not have a distance >2 which would be
+needed to correct one error. Let's try with a hamming code
 
 ## Correcting errors with hamming codes
 ```Haskell

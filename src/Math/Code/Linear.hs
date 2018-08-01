@@ -148,11 +148,7 @@ natToInt = fromInteger . natVal
 
 instance forall n k f. (Eq f, Fractional f, KnownNat n, KnownNat k, k <= n)
   => Eq (LinearCode n k f) where
-    c == d = standardFormGenerator c `eqJust` standardFormGenerator d
-        where eqJust :: Eq a => Maybe a -> Maybe a -> Bool
-              eqJust Nothing _ = False
-              eqJust _ Nothing = False
-              eqJust (Just x) (Just y) = x == y
+    c == d = standardFormGenerator c == standardFormGenerator d
 
 -- We do not show d since it might be expensive to calculate
 instance forall n k f c.
@@ -213,15 +209,15 @@ instance forall n k f.
 --   codes can be converted to standard form without permutation of columns.
 standardForm :: forall n k f.
     (Eq f, Fractional f, KnownNat n, KnownNat k, k <= n)
-      => Generator n k f -> Maybe (Generator n k f)
-standardForm = either (const Nothing) Just . rref
+      => Generator n k f -> Generator n k f
+standardForm = rref
 
 
 -- | The standard from generator of a linear code. Uses 'standardForm' to
 --   try to create a standard form generator which might fail.
 standardFormGenerator :: forall n k f.
     (Eq f, Fractional f, KnownNat n, KnownNat k, k <= n)
-      => LinearCode n k f -> Maybe (Generator n k f)
+      => LinearCode n k f -> Generator n k f
 standardFormGenerator = standardForm . generatorMatrix
 
 

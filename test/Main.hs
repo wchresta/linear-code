@@ -78,8 +78,8 @@ codeTests =
         , testGroup "Standard form"
             [ Q.testProperty "Standard form of standard form is equal" $
                 \(c :: LinearCode 7 4 F.F3) ->
-                    let Just sc = standardFormGenerator c
-                     in Just sc == standardForm sc
+                    let sc = standardFormGenerator c
+                     in sc == standardForm sc
             ]
         --, testGroup "Code transformers"
         --    [ testProperty "Dual of dual is identitiy" $

@@ -60,10 +60,11 @@ module Data.Matrix.Safe
 
 import GHC.TypeLits (Nat, KnownNat, natVal, type (+), type (-), type (<=))
 import GHC.Generics (Generic)
+import Data.List (find)
 import Data.Proxy (Proxy(..))
 import Data.Semigroup (Semigroup, (<>))
 import Data.Monoid (mappend)
-import Data.Maybe (listToMaybe)
+import Data.Maybe (isNothing, listToMaybe)
 
 import qualified Data.Matrix as M
 import qualified System.Random as R
@@ -179,62 +180,41 @@ submatrix i j (Matrix mat) = Matrix $ M.submatrix i (i+m'-1) j (j+n'-1) mat
           m' = fromInteger . natVal $ Proxy @m'
 
 
-rref :: forall m n a. (Fractional a, Eq a, KnownNat m, KnownNat n, m <= n)
-     => Matrix m n a -> Either String (Matrix m n a)
-rref (Matrix m) = Matrix <$> mrref m
 
--- | Take a matrix and convert it into row echelon form.
-mrref :: (Fractional a, Eq a) => M.Matrix a -> Either String (M.Matrix a)
-mrref m
-    | M.ncols m < M.nrows m
-        = Left $ "Invalid dimensions "
-              ++ show (sizeStr (M.ncols m) (M.nrows m))
-              ++ "; the number of columns must be greater than or equal to "
-              ++ "the number of rows"
-    | otherwise
-        = rrefRefd =<< mref m
-  where
-    rrefRefd mtx
-        | M.nrows mtx == 1    = Right mtx
-        | otherwise =
-            let -- this is super-slow: [resolvedRight] is cubic
-                -- because [combineRows] is quadratic
-                resolvedRight = foldr ((.) . resolveRow) id [1..col-1] mtx
-                  where
-                    col = M.nrows mtx
-                    resolveRow n = M.combineRows n (-M.getElem n col mtx) col
-                top = M.submatrix 1 (M.nrows resolvedRight - 1)
-                          1 (M.ncols resolvedRight) resolvedRight
-                top' = rrefRefd top
-                bot = M.submatrix (M.nrows resolvedRight)
-                          (M.nrows resolvedRight) 1
-                          (M.ncols resolvedRight) resolvedRight
-             in (M.<-> bot) <$> top'
-    sizeStr n m = show n ++ "x" ++ show m
+-- | Reduced row echelon form. Taken from rosettacode. This is not the
+--   implementation provided by the 'matrix' package.
+--   https://rosettacode.org/wiki/Reduced_row_echelon_form#Haskell
+rref :: forall m n a. (KnownNat m, KnownNat n, m <= n, Fractional a, Eq a)
+     => Matrix m n a -> Matrix m n a
+rref mat = fromLists $ f m 0 [0 .. rows - 1]
+  where 
+    m = toLists mat
+    rows = length m
+    cols = length $ head m
 
-mref :: (Fractional a, Eq a) => M.Matrix a -> Either String (M.Matrix a)
-mref mtx
-    | M.nrows mtx == 1 = clearedLeft
-    | otherwise = do
-        (tl, tr, bl, br) <- M.splitBlocks 1 1 <$> clearedLeft
-        br' <- mref br
-        return $ (tl M.<|> tr) M.<-> (bl M.<|> br')
-  where
-    sigAtTop = (\row -> M.switchRows 1 row mtx) <$> goodRow
-      where
-        significantRow n = M.getElem n 1 mtx /= 0
-        goodRow = case listToMaybe (filter significantRow [1..M.nrows mtx]) of
-            Nothing -> Left "Attempt to invert a non-invertible matrix"
-            Just x -> return x
-    normalizedFirstRow = (\sigAtTop' ->
-                M.scaleRow (1 / M.getElem 1 1 sigAtTop') 1 sigAtTop')
-                    <$> sigAtTop
-    clearedLeft = do
-        comb <- mapM combinator [2..M.nrows mtx]
-        firstRow <- normalizedFirstRow
-        return $ foldr (.) id comb firstRow
-      where
-        combinator n = (\normalizedFirstRow' ->
-            M.combineRows n (-M.getElem n 1 normalizedFirstRow') 1)
-                <$> normalizedFirstRow
+    f m _    []              = m
+    f m lead (r : rs)
+      | isNothing indices = m
+      | otherwise         = f m' (lead' + 1) rs
+      where 
+        indices = find p l
+        p (col, row) = m !! row !! col /= 0
+        l = [(col, row) |
+            col <- [lead .. cols - 1],
+            row <- [r .. rows - 1]]
 
+        Just (lead', i) = indices
+        newRow = map (/ m !! i !! lead') $ m !! i
+
+        m' = zipWith g [0..] $
+            replace r newRow $
+            replace i (m !! r) m
+        g n row
+            | n == r    = row
+            | otherwise = zipWith h newRow row
+              where h = subtract . (* row !! lead')
+
+replace :: Int -> a -> [a] -> [a]
+{- Replaces the element at the given index. -}
+replace n e l = a ++ e : b
+  where (a, _ : b) = splitAt n l
