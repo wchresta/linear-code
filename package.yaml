@@ -35,10 +35,10 @@ dependencies:
 library:
   source-dirs: src
   exposed-modules:
-    - Math.Code.Linear
+    - Math.Algebra.Code.Linear
     - Math.Algebra.Field.Instances
     - Math.Algebra.Field.Static
-    - Data.Matrix.Safe
+    - Math.Algebra.Matrix
 
 tests:
   linear-code-test:

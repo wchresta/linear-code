@@ -24,7 +24,7 @@
     along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
 -}
 {-|
-Module      : Math.Code.Linear
+Module      : Math.Algebra.Code.Linear
 Description : Linear codes over arbitrary fields
 Copyright   : (c) Wanja Chresta, 2018
 License     : GPL-3
@@ -43,7 +43,7 @@ As theoretical basis, Introduction to Coding Theory by Yehuda Lindell is used.
 It can be found at
 http://u.cs.biu.ac.il/~lindell/89-662/coding_theory-lecture-notes.pdf
 -}
-module Math.Code.Linear
+module Math.Algebra.Code.Linear
     ( LinearCode (..)
     , Generator, CheckMatrix
     , codeFromA
@@ -95,15 +95,11 @@ import Data.Maybe (fromMaybe)
 import Data.List (permutations)
 import qualified Data.Map.Strict as M
 import Data.Proxy (Proxy (..))
-import Math.Combinat.Permutations (_randomPermutation)
 import System.Random ( Random, RandomGen
                      , random, randomR, randoms, randomRs, split)
 
-import Data.Matrix.Safe
-    ( Matrix, matrix, transpose, (<|>), (.*)
-    , identity, zero, fromList, fromLists, Vector, rref, submatrix
-    )
 import Math.Core.Utils (FinSet, elts)
+import Math.Combinat.Permutations (_randomPermutation)
 import Math.Common.IntegerAsType (IntegerAsType, value)
 import Math.Algebra.Field.Base
         ( FiniteField, eltsFq, basisFq, Fp(Fp)
@@ -115,6 +111,10 @@ import Math.Algebra.Field.Extension
         , F4, F8, F16, F9
         )
 import Math.Algebra.Field.Instances -- import Random instances for Fields
+import Math.Algebra.Matrix
+    ( Matrix, matrix, transpose, (<|>), (.*)
+    , identity, zero, fromList, fromLists, Vector, rref, submatrix
+    )
 
 
 -- | A Generator is the generator matrix of a linear code, not necessarily

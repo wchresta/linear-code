@@ -28,6 +28,9 @@ import qualified Math.Algebra.Field.Base as F
 import qualified Math.Algebra.Field.Extension as F
 
 
+-- | The characteristic of a finite field on the type level. The characteristic
+--   is: For any element @x@ in the field @f@ with characteristic @c@, we have:
+--   @c * x = x + x + .. + x (c times) = 0@
 type family Characteristic (f :: *) :: Nat
 type instance Characteristic F.F2 = 2
 type instance Characteristic F.F3 = 3
@@ -57,9 +60,17 @@ type instance Characteristic F.F97 = 97
 type instance Characteristic (F.ExtensionField k poly) 
   = Characteristic k -- Extension fields have their base fields char
 
+
+-- | Characteristic of a field. It takes a finite field type in the proxy
+--   value and gives the characteristic. This is done using type families
+--   To support new finite field types, you need to add a type instance
+--   for the type family 'Characteristic'.
 char :: forall c f. (KnownNat c, c ~ Characteristic f) => Proxy f -> Int
 char Proxy = fromInteger . natVal $ Proxy @c
 
+
+-- | Type family which gives the degree of a polynomial type. This is used to
+--   extract type level information from 'Math.Algebra.Field.Extension'
 type family PolyDegree (f :: *) :: Nat
 type instance PolyDegree F.ConwayF4 = 2
 type instance PolyDegree F.ConwayF8 = 3
@@ -70,8 +81,11 @@ type instance PolyDegree F.ConwayF27 = 3
 type instance PolyDegree F.ConwayF32 = 5
 
 
+-- | Type family which gives the size of a field, i.e. the number of elements
+--   of a finite field.
 type family Size (f :: *) :: Nat
 type instance Size (F.Fp p) = Characteristic (F.Fp p)
-type instance Size (F.ExtensionField fp poly) = Characteristic fp ^ PolyDegree poly
+type instance Size (F.ExtensionField fp poly) = 
+    Characteristic fp ^ PolyDegree poly
 
 

@@ -7,13 +7,13 @@ import Data.Maybe (fromJust)
 import Data.Proxy (Proxy(..))
 import Control.Applicative (empty)
 
-import qualified Data.Matrix.Safe as M
+import qualified Math.Algebra.Matrix as M
 import Math.Algebra.Field.Instances -- Import random instances
 import qualified Math.Core.Utils as F
 import qualified Math.Algebra.Field.Base as F
 import qualified Math.Algebra.Field.Extension as F
 import qualified Math.Common.IntegerAsType as F
-import Math.Code.Linear
+import Math.Algebra.Code.Linear
 import System.Random (Random)
 
 import Test.Tasty

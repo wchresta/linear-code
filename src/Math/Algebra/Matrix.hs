@@ -24,7 +24,7 @@
     along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
 -}
 {-|
-Module      : Data.Matrix.Safe
+Module      : Math.Algebra.Matrix
 Description : Type safe matrix wrapper over the matrix library
 Copyright   : (c) Wanja Chresta, 2018
 License     : GPL-3
@@ -32,15 +32,13 @@ Maintainer  : wanja.hs@chrummibei.ch
 Stability   : experimental
 Portability : POSIX
 
-Naive implementation of coding theory linear codes and error correcting codes
-over arbitrary fields, including finite fields. Goes well with the
-@HaskellForMath@ library and its finite field implementations in
-@Math.Algebra.Field@. To use extension fields (fields of prime power, i.e.
-@F_{p^k}@ with @k>1@), use one of the exported finite fields in
-@Math.Algebra.Field.Extension@ like 'F16' and its generator 'a16'.
+Math.Algebra.Matrix wraps @matrix@'s Data.Matrix functions and adds size
+information on the type level. Additionally, it fixes some issues that makes
+the library work well with finite fields. The name of most functions is the
+same as in Data.Matrix
 -}
 
-module Data.Matrix.Safe
+module Math.Algebra.Matrix
     ( Matrix(..)
     , matrix
     , Vector
