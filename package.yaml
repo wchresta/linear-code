@@ -1,7 +1,7 @@
 name:                linear-code
-version:             0.1.0.0
+version:             0.1.0
 github:              "wchresta/linear-code"
-license:             GPL3
+license:             GPL-3
 author:              "Wanja Chresta"
 maintainer:          "wanja.hs@chrummibei.ch"
 copyright:           "2018, Wanja Chresta"
@@ -20,17 +20,15 @@ description: Please see the README on GitHub at <https://github.com/wchresta/lin
 
 dependencies:
     - base >= 4.7 && < 5
-    - combinat >= 0.2
-    - containers >= 0.5
-    - data-default >= 0.5
-    - matrix >= 0.3
-    - HaskellForMaths >= 0.4
-    - ghc-typelits-natnormalise >= 0.2
-    - ghc-typelits-knownnat >= 0.4
+    - combinat
+    - containers
+    - data-default
+    - matrix
+    - HaskellForMaths
+    - ghc-typelits-natnormalise
+    - ghc-typelits-knownnat
     - random
     - MonadRandom
-      #   - hmatrix
-      #   - polynomial
 
 library:
   source-dirs: src

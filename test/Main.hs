@@ -41,7 +41,15 @@ codeTests =
     let tc = trivialCode :: BinaryCode 5 3
         hamming74 = hamming :: BinaryCode 7 4
      in testGroup "Codes"
-        [ testGroup "Trivial code"
+        [ testGroup "Instances"
+            [ testCase "Show works for unknown distance" $
+                show (trivialCode {distance=Nothing} :: LinearCode 7 4 F.F3)
+                    @?= "[7,4]_3-Code"
+            , testCase "Show works for known distance" $
+                show (trivialCode {distance=Just 3} :: LinearCode 7 4 F.F3)
+                    @?= "[7,4,3]_3-Code"
+            ]
+        , testGroup "Trivial code"
             [ testCase "Trivial binary code == codeFromA zero, [5,3]" $
                 tc @?= codeFromA zero
             , testCase "Trivial binary code == codeFromA zero, [3,3]" $
@@ -88,7 +96,7 @@ codeTests =
         ]
 
 -- SmallCheck Series for GF
-instance forall m f. (Monad m, FiniteField f) => S.Serial m f where
+instance forall m f. (Monad m, F.FiniteField f) => S.Serial m f where
     series = S.generate $ \d -> take (d+1) (F.eltsFq 1 :: [f])
 
 instance forall m n f. (KnownNat m, KnownNat n, Q.Arbitrary f)
