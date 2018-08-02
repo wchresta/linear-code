@@ -20,6 +20,18 @@
     You should have received a copy of the GNU General Public License
     along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
 -}
+{-|
+Module      : Math.Algebra.Field.Static
+Description : Some type families extracting finite field parameters
+Copyright   : (c) Wanja Chresta, 2018
+License     : GPL-3
+Maintainer  : wanja.hs@chrummibei.ch
+Stability   : experimental
+Portability : POSIX
+
+Some finite field parameters are missing from @HaskellForMaths@ implementation.
+Here, we add type classes to add these parameters to the type level.
+-}
 module Math.Algebra.Field.Static where
 
 import Data.Proxy (Proxy(Proxy))
@@ -57,7 +69,7 @@ type instance Characteristic F.F79 = 79
 type instance Characteristic F.F83 = 83
 type instance Characteristic F.F89 = 89
 type instance Characteristic F.F97 = 97
-type instance Characteristic (F.ExtensionField k poly) 
+type instance Characteristic (F.ExtensionField k poly)
   = Characteristic k -- Extension fields have their base fields char
 
 
@@ -85,7 +97,7 @@ type instance PolyDegree F.ConwayF32 = 5
 --   of a finite field.
 type family Size (f :: *) :: Nat
 type instance Size (F.Fp p) = Characteristic (F.Fp p)
-type instance Size (F.ExtensionField fp poly) = 
+type instance Size (F.ExtensionField fp poly) =
     Characteristic fp ^ PolyDegree poly
 
 

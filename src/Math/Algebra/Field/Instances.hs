@@ -15,6 +15,19 @@
     You should have received a copy of the GNU General Public License
     along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
 -}
+{-|
+Module      : Math.Algebra.Field.Instances
+Description : Missing instnaces for @HaskellForMaths@'s 'Math.Algebra.Field'
+Copyright   : (c) Wanja Chresta, 2018
+License     : GPL-3
+Maintainer  : wanja.hs@chrummibei.ch
+Stability   : experimental
+Portability : POSIX
+
+Some important instances like 'Random' and 'Bounded' are missing from
+@HaskellForMath@'s implementation of finite fiels. Here, orphan instances
+for these classes are added.
+-}
 
 module Math.Algebra.Field.Instances() where
 

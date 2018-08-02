@@ -67,6 +67,9 @@ import Data.Maybe (isNothing, listToMaybe)
 import qualified Data.Matrix as M
 import qualified System.Random as R
 
+
+-- | A matrix over the type @f@ with @m@ rows and @n@ columns. This just wraps
+--   the 'Data.Matrix.Matrix' constructor and adds size information to the type
 newtype Matrix (m :: Nat) (n :: Nat) (f :: *) = Matrix (M.Matrix f)
     deriving (Eq, Functor, Applicative, Foldable, Traversable, Monoid)
 
@@ -115,67 +118,87 @@ instance forall m n a. (KnownNat m, KnownNat n, R.Random a)
 (^*) :: forall m n a. Num a => a -> Matrix m n a -> Matrix m n a
 x ^* (Matrix n) = Matrix $ M.scaleMatrix x n
 
+-- | A row vector (a matrix with one row).
 type Vector = Matrix 1
 
+-- | /O(rows*cols)/. Generate a matrix from a generator function.
+-- | The elements are 1-indexed, i.e. top-left element is @(1,1)@.
 matrix :: forall m n a. (KnownNat m, KnownNat n)
        => ((Int, Int) -> a) -> Matrix (m :: Nat) (n :: Nat) a
 matrix = Matrix . M.matrix m' n'
-    where m' = fromInteger $ natVal (Proxy @m)
-          n' = fromInteger $ natVal (Proxy @n)
+    where m' = fromInteger $ natVal @m Proxy
+          n' = fromInteger $ natVal @n Proxy
 
+-- | /O(rows*cols)/. The transpose of a matrix.
 transpose :: forall m n a. Matrix m n a -> Matrix n m a
 transpose (Matrix m) = Matrix . M.transpose $ m
 
+-- | Horizontally join two matrices. Visually:
+--
+-- > ( A ) <|> ( B ) = ( A | B )
 (<|>) :: forall m n k a. (KnownNat n, KnownNat k)
       => Matrix m n a -> Matrix m k a -> Matrix m (k+n) a
 (Matrix x) <|> (Matrix y) = Matrix $ x M.<|> y
 
+-- | /O(rows*cols)/. Identity matrix
 identity :: forall n a. (Num a, KnownNat n) => Matrix n n a
 identity = Matrix $ M.identity n'
-    where n' = fromInteger $ natVal (Proxy @n)
+    where n' = fromInteger $ natVal @n Proxy
 
+-- | /O(rows*cols)/. The zero matrix
 zero :: forall m n a. (Num a, KnownNat n, KnownNat m) => Matrix m n a
 zero = Matrix $ M.zero m' n'
-    where n' = fromInteger $ natVal (Proxy @n)
-          m' = fromInteger $ natVal (Proxy @m)
+    where n' = fromInteger $ natVal @n Proxy
+          m' = fromInteger $ natVal @m Proxy
 
+-- | Create a matrix from a list of elements.
+--   The list must have exactly length @n*m@. This is checked or else an 
+--   exception is thrown.
 fromList :: forall m n a. (KnownNat m, KnownNat n) => [a] -> Matrix m n a
-fromList as = if length as == n'*m'
-                 then Matrix $ M.fromList m' n' as
+fromList as = if length as == n*m
+                 then Matrix $ M.fromList m n as
                  else error $ "List has wrong dimension: "
                                 <>show (length as)
                                 <>" instead of "
-                                <>show (n'*m')
-    where n' = fromInteger $ natVal (Proxy @n)
-          m' = fromInteger $ natVal (Proxy @m)
+                                <>show (n*m)
+  where n = fromInteger $ natVal @n Proxy
+        m = fromInteger $ natVal @m Proxy
 
+-- | Create a matrix from a list of rows. The list must have exactly @m@
+--   lists of length @n@. An exception is thrown otherwise.
 fromLists :: forall m n a. (KnownNat m, KnownNat n) => [[a]] -> Matrix m n a
-fromLists as = if length as == m' && length (head as) == n'
+fromLists as = if length as == m && all (\row -> length row == n) as
                  then Matrix $ M.fromLists as
                  else error $ "List has wrong dimension: "
                                 <>show (length as)<>":"
                                 <>show (length $ head as)
                                 <>" instead of "
-                                <>show m' <>":"<> show n'
-    where n' = fromInteger $ natVal (Proxy @n)
-          m' = fromInteger $ natVal (Proxy @m)
+                                <>show m <>":"<> show n
+    where n = fromInteger $ natVal @n Proxy
+          m = fromInteger $ natVal @m Proxy
 
-
+-- | Get the elements of a matrix stored in a list.
 toList :: forall m n a. Matrix m n a -> [a]
 toList (Matrix m) = M.toList m
 
-
+-- | Get the elements of a matrix stored in a list of lists,
+--   where each list contains the elements of a single row.
 toLists :: forall m n a. Matrix m n a -> [[a]]
 toLists (Matrix m) = M.toLists m
 
 
+-- | /O(1)/. Extract a submatrix from the given position. The size of the
+--   extract is determined by the types, i.e. the parameters define which
+--   element is the top-left element of the extract.
+--   CAUTION: It is not checked if an extract is possible. Wrong parameters
+--   will cause an exception.
 submatrix :: forall m n m' n' a.
     (KnownNat m, KnownNat n, KnownNat m', KnownNat n'
     , m' <= m, n' <= n)
       => Int -> Int -> Matrix m n a -> Matrix m' n' a
 submatrix i j (Matrix mat) = Matrix $ M.submatrix i (i+m'-1) j (j+n'-1) mat
-    where n' = fromInteger . natVal $ Proxy @n'
-          m' = fromInteger . natVal $ Proxy @m'
+    where n' = fromInteger $ natVal @n' Proxy
+          m' = fromInteger $ natVal @m' Proxy
 
 
 
@@ -212,7 +235,7 @@ rref mat = fromLists $ f m 0 [0 .. rows - 1]
             | otherwise = zipWith h newRow row
               where h = subtract . (* row !! lead')
 
-replace :: Int -> a -> [a] -> [a]
-{- Replaces the element at the given index. -}
-replace n e l = a ++ e : b
-  where (a, _ : b) = splitAt n l
+        replace :: Int -> b -> [b] -> [b]
+        {- Replaces the element at the given index. -}
+        replace n e l = a ++ e : b
+          where (a, _ : b) = splitAt n l
