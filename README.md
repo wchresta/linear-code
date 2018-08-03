@@ -4,7 +4,7 @@ Library to handle linear codes from coding theory.
 The library is designed to carry the most important bits of information in the
 type system while still keeping the types sane.
 
-This library is based roughly on [/Introduction to Coding Theory/ by /Yehuda Lindell/](http://u.cs.biu.ac.il/~lindell/89-662/coding_theory-lecture-notes.pdf)
+This library is based roughly on [_Introduction to Coding Theory_ by _Yehuda Lindell_](http://u.cs.biu.ac.il/~lindell/89-662/coding_theory-lecture-notes.pdf)
 
 # Usage example
 ## Working with random codes

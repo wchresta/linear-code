@@ -101,9 +101,11 @@ module Math.Algebra.Code.Linear
 
     -- * Code-Vectors and codewords
     , Vector, encode, isCodeword, hasError, weight, codewords
+    , allVectors, fullVectors, hammingWords, lighterWords
 
     -- * Decoding
-    , syndrome, decode, syndromeDecode, calcSyndromeTable
+    , syndrome, decode, syndromeDecode, calcSyndromeTable, recalcSyndromeTable
+    , SyndromeTable
 
     -- * Code transformers
     , dualCode, permuteCode
@@ -117,7 +119,7 @@ module Math.Algebra.Code.Linear
     , codeLength
     , rank
 
-    , e, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10
+    , eVec, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10
     , char
 
     -- * Reexported matrix functions from "Math.Algebra.Matrix"
@@ -130,36 +132,26 @@ module Math.Algebra.Code.Linear
 
 -- Linear codes from mathematical coding theory, including error correcting
 -- codes
-import Prelude hiding (CVector)
 import GHC.TypeLits
         ( Nat, KnownNat, natVal
         , type (<=), type (+), type (-), type (^)
         )
 
-import Control.Monad.Random.Class (MonadRandom, getRandoms)
 import Data.Bifunctor (first)
-import Data.Either (fromRight)
 import Data.Monoid ((<>))
 import Data.Maybe (fromMaybe)
 import Data.List (permutations)
 import qualified Data.Map.Strict as M
 import Data.Proxy (Proxy (..))
-import System.Random ( Random, RandomGen
-                     , random, randomR, randoms, randomRs, split)
+import System.Random (Random, RandomGen, random, randomR)
 
 import Math.Core.Utils (FinSet, elts)
 import Math.Combinat.Permutations (_randomPermutation)
-import Math.Common.IntegerAsType (IntegerAsType, value)
-import Math.Algebra.Field.Base
-        ( FiniteField, eltsFq, basisFq, Fp(Fp)
-        , F2, F3, F5, F7, F11
-        )
-import Math.Algebra.Field.Static (Size, Characteristic, PolyDegree, char)
-import Math.Algebra.Field.Extension
-        ( ExtensionField(Ext), x, embed, pvalue
-        , F4, F8, F16, F9
-        )
-import Math.Algebra.Field.Instances -- import Random instances for Fields
+import Math.Common.IntegerAsType (IntegerAsType)
+import Math.Algebra.Field.Base (Fp, F2, F3, F5, F7, F11)
+import Math.Algebra.Field.Static (Size, Characteristic, char)
+import Math.Algebra.Field.Extension (F4, F8, F16, F9)
+import Math.Algebra.Field.Instances () -- import Random instances for Fields
 import Math.Algebra.Matrix
     ( Matrix, matrix, transpose, (<|>), (.*)
     , identity, zero, fromList, fromLists, Vector, rref, submatrix
@@ -205,7 +197,7 @@ instance forall n k f. (Eq f, Fractional f, KnownNat n, KnownNat k, k <= n)
     c == d = standardFormGenerator c == standardFormGenerator d
 
 -- We do not show d since it might be expensive to calculate
-instance forall n k f c.
+instance forall n k f.
     (KnownNat n, KnownNat k, KnownNat (Characteristic f))
     => Show (LinearCode n k f) where
         show LinearCode{distance=md} =
@@ -253,8 +245,7 @@ instance forall n k f.
       random g = uncurry shuffleCode $ randomStandardFormCode g
 
       randomR (hc,lc) g =
-          let k = fromInteger . natVal $ Proxy @k
-              n = fromInteger . natVal $ Proxy @n
+          let k = natToInt @k Proxy
               extractA = submatrix 1 k . generatorMatrix
               (rmat,g2) = randomR (extractA hc, extractA lc) g
               rcode = codeFromA rmat
@@ -287,7 +278,7 @@ rank :: forall n k f. KnownNat k => LinearCode n k f -> Int
 rank _ = natToInt @k Proxy
 
 -- | The hamming weight of a Vector is an 'Int' between 0 and n
-weight :: forall n f m. (Eq f, Num f, Functor m, Foldable m) => m f -> Int
+weight :: forall f m. (Eq f, Num f, Functor m, Foldable m) => m f -> Int
 weight = sum . fmap (\x -> if x==0 then 0 else 1)
 
 -- | Generate a linear [n,k]_q-Code over the field a with the generator in
@@ -342,7 +333,8 @@ hammingWords w = fromList <$> shuffledVecs
     shuffledVecs :: [[f]]
     shuffledVecs = orderedVecs >>= permutations
 
--- | List of all words with hamming weight smaller than a given boundary
+-- | List of all words with (non-zero) hamming weight smaller than a given 
+--   boundary
 lighterWords :: forall n f. (KnownNat n, FinSet f, Num f, Eq f)
     => Int -> [Vector n f]
 lighterWords w = concat [ hammingWords l | l <- [1..w] ]
@@ -378,6 +370,12 @@ decode = syndromeDecode
 
 -- | Pairs of (e,S(e)) where e is an error vector and S(e) is its syndrome.
 type Syndrome n k f = Vector (n-k) f
+
+-- | A syndrome table is a map from syndromes to their minimal weight
+--   representative. Every vector @v@ has a syndrome \( S(v) \). This table
+--   reverses the syndrome function @S@ and chooses the vector with the smallest
+--   hamming weight from it's image. This is a lookup table for syndrome
+--   decoding.
 type SyndromeTable n k f = M.Map (Syndrome n k f) (Vector n f)
 
 -- | Return a syndrome table for the given linear code. If the distance is not
@@ -480,9 +478,7 @@ simplex :: forall k p s.
 simplex = codeFromA . transpose $ fromLists nonUnit
   where
     k = natToInt @k Proxy
-    allVectors :: Size (Fp p) ~ s => [[Fp p]]
-    allVectors = fmap reverse . tail $ iterate ([(0:),(1:)] <*>) [[]] !! k
-    nonUnit = filter ((>1) . weight) allVectors
+    nonUnit = filter ((>1) . weight) $ allVectorsI k
 
 -- | The /Hamming(7,4)/-code. It is a [7,4,3]_2 code
 hamming :: (KnownNat m, 2 <= m, m <= 2^m, 1+m <= 2^m)
@@ -493,41 +489,41 @@ hamming = dualCode simplex { distance = Just 3 }
 -- * Helper functions
 
 -- | Standard base vector [0..0,1,0..0] for any field. Parameter must be >=1
-e :: forall n f. (KnownNat n, Num f) => Int -> Vector n f
-e i = fromList $ replicate (i-1) 0 ++ 1 : replicate (n-i) 0
-        where
-          n = natToInt @n Proxy
+eVec :: forall n f. (KnownNat n, Num f) => Int -> Vector n f
+eVec i = fromList $ replicate (i-1) 0 ++ 1 : replicate (n-i) 0
+           where
+             n = natToInt @n Proxy
 
 -- | First base vector [1,0..0]
 e1 :: forall n f. (KnownNat n, Num f) => Vector n f
-e1 = e 1
+e1 = eVec 1
 
 -- | Second base vector [0,1,0..0]
 e2 :: forall n f. (KnownNat n, Num f) => Vector n f
-e2 = e 2
+e2 = eVec 2
 
 e3 :: forall n f. (KnownNat n, Num f) => Vector n f
-e3 = e 3
+e3 = eVec 3
 
 e4 :: forall n f. (KnownNat n, Num f) => Vector n f
-e4 = e 4
+e4 = eVec 4
 
 e5 :: forall n f. (KnownNat n, Num f) => Vector n f
-e5 = e 5
+e5 = eVec 5
 
 e6 :: forall n f. (KnownNat n, Num f) => Vector n f
-e6 = e 6
+e6 = eVec 6
 
 e7 :: forall n f. (KnownNat n, Num f) => Vector n f
-e7 = e 7
+e7 = eVec 7
 
 e8 :: forall n f. (KnownNat n, Num f) => Vector n f
-e8 = e 8
+e8 = eVec 8
 
 e9 :: forall n f. (KnownNat n, Num f) => Vector n f
-e9 = e 9
+e9 = eVec 9
 
 e10 :: forall n f. (KnownNat n, Num f) => Vector n f
-e10 = e 10
+e10 = eVec 10
 
 -- vim : set colorcolumn=80

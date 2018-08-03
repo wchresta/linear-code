@@ -56,13 +56,11 @@ module Math.Algebra.Matrix
     , submatrix
     ) where
 
-import GHC.TypeLits (Nat, KnownNat, natVal, type (+), type (-), type (<=))
-import GHC.Generics (Generic)
+import GHC.TypeLits (Nat, KnownNat, natVal, type (+), type (<=))
 import Data.List (find)
 import Data.Proxy (Proxy(..))
-import Data.Semigroup (Semigroup, (<>))
-import Data.Monoid (mappend)
-import Data.Maybe (isNothing, listToMaybe)
+import Data.Semigroup ((<>))
+import Data.Maybe (isNothing)
 
 import qualified Data.Matrix as M
 import qualified System.Random as R
@@ -99,9 +97,7 @@ instance forall m n a. (KnownNat m, KnownNat n, R.Random a)
       randomR (lm,hm) g =
           -- lm and hm are matrices. We zip the elements and use these as
           -- hi/lo bounds for the random generator
-          let m = fromInteger . natVal $ Proxy @m
-              n = fromInteger . natVal $ Proxy @n
-              zipEls :: [(a,a)]
+          let zipEls :: [(a,a)]
               zipEls = zip (toList lm) (toList hm)
               rmatStep :: R.RandomGen g => (a,a) -> ([a],g) -> ([a],g)
               rmatStep hilo (as,g1) = let (a,g2) = R.randomR hilo g1
@@ -207,13 +203,13 @@ submatrix i j (Matrix mat) = Matrix $ M.submatrix i (i+m'-1) j (j+n'-1) mat
 --   https://rosettacode.org/wiki/Reduced_row_echelon_form#Haskell
 rref :: forall m n a. (KnownNat m, KnownNat n, m <= n, Fractional a, Eq a)
      => Matrix m n a -> Matrix m n a
-rref mat = fromLists $ f m 0 [0 .. rows - 1]
+rref mat = fromLists $ f matM 0 [0 .. rows - 1]
   where 
-    m = toLists mat
-    rows = length m
-    cols = length $ head m
+    matM = toLists mat
+    rows = length matM
+    cols = length $ head matM
 
-    f m _    []              = m
+    f m _    []           = m
     f m lead (r : rs)
       | isNothing indices = m
       | otherwise         = f m' (lead' + 1) rs
@@ -237,5 +233,5 @@ rref mat = fromLists $ f m 0 [0 .. rows - 1]
 
         replace :: Int -> b -> [b] -> [b]
         {- Replaces the element at the given index. -}
-        replace n e l = a ++ e : b
-          where (a, _ : b) = splitAt n l
+        replace n e t = a ++ e : b
+          where (a, _ : b) = splitAt n t

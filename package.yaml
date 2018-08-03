@@ -7,11 +7,12 @@ maintainer:          "wanja.hs@chrummibei.ch"
 copyright:           "2018, Wanja Chresta"
 
 extra-source-files:
+- ChangeLog.md
 - README.md
 
 # Metadata used when publishing your package
 synopsis: A simple library for linear codes (coding theory, error correction)
-category: Mathematics
+category: Math
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
@@ -28,7 +29,6 @@ dependencies:
     - ghc-typelits-natnormalise
     - ghc-typelits-knownnat
     - random
-    - MonadRandom
 
 library:
   source-dirs: src
@@ -37,6 +37,8 @@ library:
     - Math.Algebra.Field.Instances
     - Math.Algebra.Field.Static
     - Math.Algebra.Matrix
+  ghc-options:
+    - -Wall
 
 tests:
   linear-code-test:
