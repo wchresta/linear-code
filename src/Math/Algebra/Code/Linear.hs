@@ -28,7 +28,7 @@ Module      : Math.Algebra.Code.Linear
 Description : Linear codes over arbitrary fields
 Copyright   : (c) Wanja Chresta, 2018
 License     : GPL-3
-Maintainer  : wanja.hs@chrummibei.ch
+Maintainer  : wanja dot hs at chrummibei dot ch
 Stability   : experimental
 Portability : POSIX
 

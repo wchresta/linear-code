@@ -3,7 +3,7 @@ version:             0.1.0
 github:              "wchresta/linear-code"
 license:             GPL-3
 author:              "Wanja Chresta"
-maintainer:          "wanja.hs@chrummibei.ch"
+maintainer:          "wanja dot hs at chrummibei dot ch"
 copyright:           "2018, Wanja Chresta"
 
 extra-source-files:

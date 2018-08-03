@@ -21,7 +21,7 @@ Module      : Math.Algebra.Field.Instances
 Description : Missing instnaces for @HaskellForMaths@'s 'Math.Algebra.Field'
 Copyright   : (c) Wanja Chresta, 2018
 License     : GPL-3
-Maintainer  : wanja.hs@chrummibei.ch
+Maintainer  : wanja dot hs at chrummibei dot ch
 Stability   : experimental
 Portability : POSIX
 

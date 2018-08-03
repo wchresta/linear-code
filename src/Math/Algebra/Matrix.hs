@@ -28,7 +28,7 @@ Module      : Math.Algebra.Matrix
 Description : Type safe matrix wrapper over the matrix library
 Copyright   : (c) Wanja Chresta, 2018
 License     : GPL-3
-Maintainer  : wanja.hs@chrummibei.ch
+Maintainer  : wanja dot hs at chrummibei dot ch
 Stability   : experimental
 Portability : POSIX
 

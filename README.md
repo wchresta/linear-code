@@ -1,3 +1,5 @@
+[![Hackage](https://img.shields.io/hackage/v/linear-code.svg)](https://hackage.haskell.org/package/linear-code) [![Hackage Deps](https://img.shields.io/hackage-deps/v/linear-code.svg)](http://packdeps.haskellers.com/reverse/linear-code)
+
 # linear-code
 Library to handle linear codes from coding theory.
 

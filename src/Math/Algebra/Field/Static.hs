@@ -25,7 +25,7 @@ Module      : Math.Algebra.Field.Static
 Description : Some type families extracting finite field parameters
 Copyright   : (c) Wanja Chresta, 2018
 License     : GPL-3
-Maintainer  : wanja.hs@chrummibei.ch
+Maintainer  : wanja dit hs at chrummibei dot ch
 Stability   : experimental
 Portability : POSIX
 
