@@ -44,6 +44,7 @@ module Math.Algebra.Matrix
     , Vector
     , transpose
     , (<|>)
+    , (<->)
     , identity
     , zero
     , fromList
@@ -134,7 +135,17 @@ transpose (Matrix m) = Matrix . M.transpose $ m
 -- > ( A ) <|> ( B ) = ( A | B )
 (<|>) :: forall m n k a. (KnownNat n, KnownNat k)
       => Matrix m n a -> Matrix m k a -> Matrix m (k+n) a
-(Matrix x) <|> (Matrix y) = Matrix $ x M.<|> y
+Matrix x <|> Matrix y = Matrix $ x M.<|> y
+
+-- | Horizontally join two matrices. Visually:
+--
+-- >                   ( A )
+-- > ( A ) <-> ( B ) = ( - )
+-- >                   ( B )
+(<->) :: forall m k n a. (KnownNat m, KnownNat k)
+      => Matrix m n a -> Matrix k n a -> Matrix (m+k) n a
+Matrix x <-> Matrix y = Matrix $ x M.<-> y
+
 
 -- | /O(rows*cols)/. Identity matrix
 identity :: forall n a. (Num a, KnownNat n) => Matrix n n a

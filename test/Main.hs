@@ -1,14 +1,13 @@
 {-# LANGUAGE ScopedTypeVariables, DataKinds, TypeOperators, TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Main where
 
 import GHC.TypeLits (KnownNat, natVal, type (<=))
-import Data.Maybe (fromJust)
 import Data.Proxy (Proxy(..))
-import Control.Applicative (empty)
 
 import qualified Math.Algebra.Matrix as M
-import Math.Algebra.Field.Instances -- Import random instances
+import Math.Algebra.Field.Instances() -- Import random instances
 import qualified Math.Core.Utils as F
 import qualified Math.Algebra.Field.Base as F
 import qualified Math.Algebra.Field.Extension as F
@@ -21,11 +20,11 @@ import Test.Tasty.HUnit
 import qualified Test.Tasty.SmallCheck as S
 import qualified Test.Tasty.QuickCheck as Q
 import qualified Test.SmallCheck.Series as S
-import qualified Test.QuickCheck.Arbitrary as Q
 
 main :: IO ()
 main = defaultMain tests
 
+tests :: TestTree
 tests = testGroup "linear-code" [ fieldTests, codeTests ]
 
 fieldTests :: TestTree
@@ -40,6 +39,7 @@ codeTests :: TestTree
 codeTests =
     let tc = trivialCode :: BinaryCode 5 3
         hamming74 = hamming :: BinaryCode 7 4
+        eHamming94 = extendCode hamming74 :: BinaryCode 9 4
      in testGroup "Codes"
         [ testGroup "Instances"
             [ testCase "Show works for unknown distance" $
@@ -77,22 +77,52 @@ codeTests =
                                 (encode hamming74 (fromList [x,y,z,w]))
             , Q.testProperty "List all codewords" $
                 \(c :: LinearCode 7 4 F.F5) ->
-                    length (codewords c) == 5^4
+                    length (codewords c) == 5^(4 :: Int)
             , Q.testProperty "Simple decode of single error" $
                 \(v :: Vector 4 F2) ->
-                    let c = encode hamming74 v :: Vector 7 F2
-                     in decode hamming74 (c + e2) == Just c
+                    let w = encode hamming74 v :: Vector 7 F2
+                     in decode hamming74 (w + e2) == Just w
             ]
+        , testGroup "Code transformers"
+            [ Q.testProperty "dualCode . dualCode == id" $
+                \(c :: LinearCode 9 3 F.F4) ->
+                    c == (dualCode . dualCode $ c)
+            ]
+{- This test is too slow
+   , testGroup "Golay"
+            [ testCase "Golay can correct 3 errors" $
+                -- \((w,a,b,c) :: (Vector 12 F2,F2,F2,F2)) ->
+                let w = fromList [0,0,1,0,1,1,1,1,0,1,0,1] :: Vector 12 F2
+                    (a,b,c) = (1,1,1) :: (F2,F2,F2)
+                 in
+                    let v = encode golay w
+                        ve = v + a M.^* e3 + b M.^* e7 + c M.^* eVec 14
+                     in decode golay ve @?= Just v
+            ]
+-}
         , testGroup "Standard form"
             [ Q.testProperty "Standard form of standard form is equal" $
                 \(c :: LinearCode 7 4 F.F3) ->
                     let sc = standardFormGenerator c
                      in sc == standardForm sc
             ]
-        --, testGroup "Code transformers"
-        --    [ testProperty "Dual of dual is identitiy" $
-        --        \(c :: LinearCode 7 4 F2) -> (dualCode . dualCode) c == c
-        --    ]
+        , testGroup "Code transformers"
+            [ Q.testProperty "Dual of dual is identitiy" $
+                \(c :: LinearCode 7 4 F2) -> (dualCode . dualCode) c == c
+            , Q.testProperty "Extended codes are of same distance" $
+                \(c :: LinearCode 7 4 F5) ->
+                    distance (extendCode c :: LinearCode 9 4 F5) == distance c
+            , testCase "Extended hamming have distance 3" $
+                distance (extendCode hamming74 :: BinaryCode 9 4) @?= Just 3
+            , Q.testProperty "Extended hamming can correct 1 error" $
+                \(v :: Vector 4 F2) ->
+                    let w = encode eHamming94 v
+                     in decode eHamming94 (w + e3) == Just w
+            , Q.testProperty "Extended hamming can correct 1 in extension" $
+                \(v :: Vector 4 F2) ->
+                    let w = encode eHamming94 v
+                     in decode eHamming94 (w + e8) == Just w
+            ]
         ]
 
 -- SmallCheck Series for GF
