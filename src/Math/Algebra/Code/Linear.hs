@@ -139,14 +139,13 @@ import GHC.TypeLits
 
 import Data.Bifunctor (first)
 import Data.Monoid ((<>))
-import Data.Maybe (fromMaybe)
 import Data.List (permutations)
 import qualified Data.Map.Strict as M
 import Data.Proxy (Proxy (..))
-import System.Random (Random, RandomGen, random, randomR)
+import System.Random (Random, RandomGen, random, randomR, split)
+import System.Random.Shuffle (shuffle')
 
 import Math.Core.Utils (FinSet, elts)
-import Math.Combinat.Permutations (_randomPermutation)
 import Math.Common.IntegerAsType (IntegerAsType)
 import Math.Algebra.Field.Base (Fp, F2, F3, F5, F7, F11)
 import Math.Algebra.Field.Static (Size, Characteristic, char)
@@ -220,10 +219,11 @@ randomPermMatrix :: forall g n r. (KnownNat n, Num r, RandomGen g)
 randomPermMatrix g =
     let n = natToInt @n Proxy
         delta i j = if i == j then 1 else 0
-        (perm,g') = _randomPermutation n g
+        (g1,g2) = split g
+        perm = shuffle' [1..n] n g1
      in (fromLists [ [ delta i (perm !! (j-1))
                      | j <- [1..n] ]
-                   | i <- [1..n] ],g')
+                   | i <- [1..n] ],g2)
 
 -- | A random code with a generator in standard form. This does not generate
 --   all possible codes but only one representant of the equivalence class
@@ -404,7 +404,7 @@ calcSyndromeTable c = M.fromListWith minWt allSyndromes
     where minWt x y = if weight x < weight y then x else y
           n = natToInt $ Proxy @n
           k = natToInt $ Proxy @k
-          w = fromMaybe (n-k+1) $ distance c
+          w = maybe (n-k+1) (\d -> div (d-1) 2) $ distance c
 
           allSyndromes :: [(Syndrome n k f, Vector n f)]
           allSyndromes = [(syndrome c e,e) | e <- lighterWords w]

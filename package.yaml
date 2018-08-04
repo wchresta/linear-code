@@ -21,7 +21,6 @@ description: Please see the README on GitHub at <https://github.com/wchresta/lin
 
 dependencies:
     - base >= 4.7 && < 5
-    - combinat
     - containers
     - data-default
     - matrix
@@ -29,6 +28,7 @@ dependencies:
     - ghc-typelits-natnormalise
     - ghc-typelits-knownnat
     - random
+    - random-shuffle
 
 library:
   source-dirs: src
