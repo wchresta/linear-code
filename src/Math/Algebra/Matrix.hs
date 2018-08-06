@@ -78,9 +78,12 @@ instance forall m n f. Show f => Show (Matrix m n f) where
 instance forall m n f. Ord f => Ord (Matrix m n f) where
     compare x y = toList x `compare` toList y -- TODO: Do not use `toList`?
 
+instance forall m n f. Monoid f => Semigroup (Matrix m n f) where
+    Matrix x <> Matrix y = Matrix $ x `mappend` y
+
 instance forall f m n. Num f => Num (Matrix m n f) where
-    (Matrix x) + (Matrix y) = Matrix $ x + y
-    (Matrix x) - (Matrix y) = Matrix $ x - y
+    Matrix x + Matrix y = Matrix $ x + y
+    Matrix x - Matrix y = Matrix $ x - y
     (*) = error "Data.Matrix.Safe: (*) not allowed. Use (.*) instead"
     negate = fmap negate
     abs = fmap abs

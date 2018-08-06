@@ -10,6 +10,8 @@ extra-source-files:
 - ChangeLog.md
 - README.md
 
+tested-with: GHC == 8.4.3, GHC == 8.2.2, GHC == 8.0.2
+
 # Metadata used when publishing your package
 synopsis: A simple library for linear codes (coding theory, error correction)
 category: Math
@@ -20,7 +22,7 @@ category: Math
 description: Please see the README on GitHub at <https://github.com/wchresta/linear-code#readme>
 
 dependencies:
-    - base >= 4.7 && < 5
+    - base >= 4.9 && < 5
     - containers
     - data-default
     - matrix
