@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -60,7 +61,11 @@ module Math.Algebra.Matrix
 import GHC.TypeLits (Nat, KnownNat, natVal, type (+), type (<=))
 import Data.List (find)
 import Data.Proxy (Proxy(..))
+#if MIN_VERSION_base(4,11,0)
 import Data.Semigroup ((<>))
+#else
+import Data.Semigroup (Semigroup, (<>))
+#endif
 import Data.Maybe (isNothing)
 
 import qualified Data.Matrix as M

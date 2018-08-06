@@ -524,7 +524,7 @@ trivialCode = codeFromA (zero :: Matrix k (n-k) f)
 --   of 0's and 1's except the zero vector.
 simplex :: forall k p s.
     ( KnownNat s, KnownNat k , IntegerAsType p
-    , 1 <= s^k, k <= s^k, k <= s^k-1, Size (Fp p) ~ s)
+    , 1 <= s^k, k <= s^k, 1 <= s^k-k, k <= s^k-1, Size (Fp p) ~ s)
         => LinearCode (s^k-1) k (Fp p)
 simplex = codeFromA . transpose $ fromLists nonUnit
   where
@@ -532,7 +532,7 @@ simplex = codeFromA . transpose $ fromLists nonUnit
     nonUnit = filter ((>1) . weight) $ allVectorsI k
 
 -- | The /Hamming(7,4)/-code. It is a [7,4,3]_2 code
-hamming :: (KnownNat m, 2 <= m, m <= 2^m, m <= 2^m-1)
+hamming :: (KnownNat m, 2 <= m, m <= 2^m, m <= 2^m-1, 1 <= 2^m-m)
         => LinearCode (2^m-1) (2^m-m-1) F2
 hamming = dualCodeD (Just 3) simplex
 
