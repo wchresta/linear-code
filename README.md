@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/wchresta/linear-code.svg?branch=master)](https://travis-ci.org/wchresta/linear-code)
+[![Build Status](https://travis-ci.com/wchresta/linear-code.svg?branch=master)](https://travis-ci.com/wchresta/linear-code)
 [![Hackage](https://img.shields.io/hackage/v/linear-code.svg)](https://hackage.haskell.org/package/linear-code)
 [![Hackage Deps](https://img.shields.io/hackage-deps/v/linear-code.svg)](http://packdeps.haskellers.com/reverse/linear-code)
 
