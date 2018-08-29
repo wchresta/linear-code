@@ -3,10 +3,10 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Main where
 
-import GHC.TypeLits (KnownNat, natVal, type (<=))
+import GHC.TypeLits (KnownNat, natVal, type (<=), type (+))
 import Data.Proxy (Proxy(..))
 
-import qualified Math.Algebra.Matrix as M
+import qualified Data.Matrix.Static as M
 import Math.Algebra.Field.Instances() -- Import random instances
 import qualified Math.Core.Utils as F
 import qualified Math.Algebra.Field.Base as F
@@ -39,7 +39,7 @@ codeTests :: TestTree
 codeTests =
     let tc = trivialCode :: BinaryCode 5 3
         hamming74 = hamming :: BinaryCode 7 4
-        eHamming94 = extendCode hamming74 :: BinaryCode 9 4
+        --eHamming94 = extendCode hamming74 :: BinaryCode 9 4
      in testGroup "Codes"
         [ testGroup "Instances"
             [ testCase "Show works for unknown distance" $
@@ -51,16 +51,16 @@ codeTests =
             ]
         , testGroup "Trivial code"
             [ testCase "Trivial binary code == codeFromA zero, [5,3]" $
-                tc @?= codeFromA zero
+                tc @?= codeFromA M.zero
             , testCase "Trivial binary code == codeFromA zero, [3,3]" $
-                (trivialCode :: BinaryCode 3 3) @?= codeFromA zero
+                (trivialCode :: BinaryCode 3 3) @?= codeFromA M.zero
             , testCase "Trivial binary code == codeFromA zero, [7,1]" $
-                (trivialCode :: BinaryCode 7 1) @?= codeFromA zero
+                (trivialCode :: BinaryCode 7 1) @?= codeFromA M.zero
             , testCase "zero vector is a code word" $
-                assertBool ("H*c' = "++show (syndrome tc zero)) $
-                    isCodeword tc zero
+                assertBool ("H*c' = "++show (syndrome tc M.zero)) $
+                    isCodeword tc M.zero
             , testCase "ones-vector is not a code word" $
-                let ones = fromList [1,1,1,1,1]
+                let ones = M.fromListUnsafe [1,1,1,1,1]
                  in assertBool ("H*c' = "++show (syndrome tc ones)) $
                      not $ isCodeword tc ones
             ]
@@ -69,12 +69,12 @@ codeTests =
                 \(c :: LinearCode 7 4 F.F3) -> seq c True
             , Q.testProperty "All generated codewords are codewords" $
                 \c x y z w -> isCodeword (c :: LinearCode 7 4 F.F5) $
-                    encode c $ fromList ([x,y,z,w] :: [F.F5])
+                    encode c $ M.fromListUnsafe ([x,y,z,w] :: [F.F5])
             ]
         , testGroup "Hamming(7,4)"
             [ S.testProperty "All encoded words are codewords" $
                 \((x,y,z,w)::(F2,F2,F2,F2)) -> isCodeword hamming74
-                                (encode hamming74 (fromList [x,y,z,w]))
+                                (encode hamming74 (M.fromListUnsafe [x,y,z,w]))
             , Q.testProperty "List all codewords" $
                 \(c :: LinearCode 7 4 F.F5) ->
                     length (codewords c) == 5^(4 :: Int)
@@ -90,15 +90,15 @@ codeTests =
             ]
 {- This test is too slow
    , testGroup "Golay"
-            [ testCase "Golay can correct 3 errors" $
-                -- \((w,a,b,c) :: (Vector 12 F2,F2,F2,F2)) ->
-                let w = fromList [0,0,1,0,1,1,1,1,0,1,0,1] :: Vector 12 F2
-                    (a,b,c) = (1,1,1) :: (F2,F2,F2)
-                 in
-                    let v = encode golay w
-                        ve = v + a M.^* e3 + b M.^* e7 + c M.^* eVec 14
-                     in decode golay ve @?= Just v
-            ]
+      [ testCase "Golay can correct 3 errors" $
+          -- \((w,a,b,c) :: (Vector 12 F2,F2,F2,F2)) ->
+          let w = M.fromListUnsafe [0,0,1,0,1,1,1,1,0,1,0,1] :: Vector 12 F2
+              (a,b,c) = (1,1,1) :: (F2,F2,F2)
+           in
+              let v = encode golay w
+                  ve = v + a M.^* e3 + b M.^* e7 + c M.^* eVec 14
+               in decode golay ve @?= Just v
+      ]
 -}
         , testGroup "Standard form"
             [ Q.testProperty "Standard form of standard form is equal" $
@@ -133,7 +133,7 @@ instance forall m f. (Monad m, F.FiniteField f) => S.Serial m f where
 
 instance forall m n f. (KnownNat m, KnownNat n, Q.Arbitrary f)
   => Q.Arbitrary (M.Matrix m n f) where
-    arbitrary = fromList <$> Q.vectorOf (n*m) Q.arbitrary
+    arbitrary = M.fromListUnsafe <$> Q.vectorOf (n*m) Q.arbitrary
       where
         n = fromInteger . natVal $ (Proxy :: Proxy n)
         m = fromInteger . natVal $ (Proxy :: Proxy m)
@@ -142,7 +142,8 @@ instance forall p. F.IntegerAsType p => Q.Arbitrary (F.Fp p) where
     arbitrary = Q.arbitraryBoundedRandom
 
 instance forall n k f.
-    (KnownNat n, KnownNat k, k <= n, Num f, Ord f, Eq f, F.FinSet f, Random f)
+  ( KnownNat n, KnownNat k, 1 <= k, k <= n, k+1 <= n
+  , Num f, Ord f, Eq f, F.FinSet f, Random f)
   => Q.Arbitrary (LinearCode n k f) where
     arbitrary = Q.arbitraryBoundedRandom
 

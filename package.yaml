@@ -1,5 +1,5 @@
 name:                linear-code
-version:             0.1.1
+version:             0.2.0
 github:              "wchresta/linear-code"
 license:             GPL-3
 author:              "Wanja Chresta"
@@ -25,7 +25,7 @@ dependencies:
     - base >= 4.9 && < 5
     - containers
     - data-default
-    - matrix
+    - matrix-static
     - HaskellForMaths
     - ghc-typelits-natnormalise
     - ghc-typelits-knownnat
@@ -38,7 +38,6 @@ library:
     - Math.Algebra.Code.Linear
     - Math.Algebra.Field.Instances
     - Math.Algebra.Field.Static
-    - Math.Algebra.Matrix
   ghc-options:
     - -Wall
 
