@@ -4,6 +4,7 @@
   - Replaced matrix with matrix-static
   - Removed Data.Algebra.Matrix
   - No reexporting of Matrix functions anymore
+  - Dropped support for lts-9, GHC <= 8.2
 
 * Minor changes
   - Fixed base min version to 4.9
